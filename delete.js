@@ -1,6 +1,6 @@
 (async () => {
   try {
-    // Extract authenticity_token from inline onclick handlers
+    // 1. Find authenticity_token from inline onclick handlers (like your example)
     let token = null;
     for (const el of document.querySelectorAll('[onclick]')) {
       const onclick = el.getAttribute('onclick');
@@ -17,23 +17,31 @@
     }
     console.log('Found authenticity_token:', token);
 
-    // Send POST request to delete account
-    const response = await fetch('/account/destroy', {
+    // 2. Set the list ID to delete
+    const listId = 2356146;  // change this if needed
+
+    // 3. Prepare form data
+    const formData = new URLSearchParams();
+    formData.append('_method', 'delete');
+    formData.append('authenticity_token', token);
+
+    // 4. Send the POST request with fetch including credentials (cookies)
+    const response = await fetch(`/lists/${listId}`, {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        '_method': 'delete',
-        'authenticity_token': token
-      }).toString(),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: formData.toString(),
       redirect: 'follow'
     });
 
     if (response.ok) {
-      console.log('Account deleted successfully!');
+      console.log(`List ${listId} deleted successfully!`);
     } else {
-      console.warn(`Failed to delete account. Status: ${response.status}`);
-      console.log(await response.text());
+      console.warn(`Failed to delete list. Status: ${response.status}`);
+      const text = await response.text();
+      console.log('Response:', text.slice(0, 500));
     }
   } catch (err) {
     console.error('Error:', err);
